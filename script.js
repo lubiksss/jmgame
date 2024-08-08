@@ -1,8 +1,6 @@
-import {checkTouch, detectKeypoints, drawKeypoints, drawObject, loadPosenet, setupCamera} from './utils.js';
-
 const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const canvasElement = document.getElementById('canvas');
+const canvasCtx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const intervalInput = document.getElementById('interval');
 const resetButton = document.getElementById('reset-button');
@@ -12,7 +10,24 @@ let score = 0;
 let objectPosition = null;
 let objectSpawnTime = 0;
 let countdownTime = 0;
-let selectedCells = new Set(['0-0', '1-1', '2-2']);
+let selectedCells = new Set([
+  "0-0",
+  "0-3",
+  "0-2",
+  "0-1",
+  "1-0",
+  "2-0",
+  "3-0",
+  "4-0",
+  "4-1",
+  "4-3",
+  "4-2",
+  "4-4",
+  "3-4",
+  "2-4",
+  "0-4",
+  "1-4"
+]);
 
 // Mark default selected cells visually
 selectedCells.forEach(cellId => {
@@ -31,8 +46,8 @@ function spawnObject() {
   const randomCell = cellArray[Math.floor(Math.random() * cellArray.length)];
   const [row, col] = randomCell.split('-').map(Number);
 
-  const cellWidth = canvas.width / 3;
-  const cellHeight = canvas.height / 3;
+  const cellWidth = canvas.width / 5;
+  const cellHeight = canvas.height / 5;
   const x = col * cellWidth + Math.random() * cellWidth;
   const y = row * cellHeight + Math.random() * cellHeight;
 
@@ -64,63 +79,202 @@ boundaryCells.forEach(cell => {
   });
 });
 
-// Main game loop
-async function gameLoop() {
-  try {
-    const keypoints = await detectKeypoints(video, net);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Add event listener for reset button
+resetButton.addEventListener('click', resetGame);
 
-    // Draw the mirrored video feed
-    ctx.save();
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-    ctx.restore();
 
-    // Draw keypoint positions
-    drawKeypoints(ctx, keypoints);
+function setupCamera(video, canvas) {
+  setupVideoElement()
 
-    // Display object with countdown
-    if (objectPosition) {
-      const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
-      countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
+  const camera = new Camera(video, {
+    onFrame: async () => {
+      await net.send({image: video});
+    },
+    width: 640,
+    height: 480
+  });
+  camera.start();
 
-      if (countdownTime > 0) {
-        const selectedSize = document.querySelector('input[name="objectSize"]:checked').value;
-        drawObject(ctx, objectPosition.x, objectPosition.y, selectedSize);
-        ctx.font = '20px Arial';
-        ctx.fillStyle = 'white';
-        ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
+  video.addEventListener('loadeddata', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  });
+}
 
-        // Check for touch
-        keypoints.forEach(keypoint => {
-          if (checkTouch(keypoint.position, objectPosition, selectedSize)) {
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function setupVideoElement() {
+  if (isMobile()) {
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+  } else {
+    video.setAttribute('autoplay', '');
+  }
+}
+
+function loadPosenet() {
+  const pose = new Pose({
+    locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+    }
+  });
+
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    smoothSegmentation: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  return pose
+}
+
+function detectKeypoints(keypoints) {
+  const selectedPart = document.querySelector('input[name="bodypart"]:checked').value;
+
+  if (keypoints) {
+    if (selectedPart === 'hand') {
+      return [keypoints[15], keypoints[16], keypoints[17], keypoints[18], keypoints[19], keypoints[20], keypoints[21], keypoints[22]];
+    } else if (selectedPart === 'head') {
+      return [keypoints[0], keypoints[2], keypoints[5], keypoints[7], keypoints[8], keypoints[9], keypoints[10]];
+    } else if (selectedPart === 'foot') {
+      return [keypoints[27], keypoints[28], keypoints[29], keypoints[30], keypoints[31], keypoints[32]];
+    } else {
+      return [];
+    }
+  }
+}
+
+function getPointSize() {
+  let bodySize
+  const selectedSize = document.querySelector('input[name="bodySize"]:checked').value;
+
+  if (selectedSize === 'small') {
+    bodySize = 5;
+  } else if (selectedSize === 'medium') {
+    bodySize = 25;
+  } else if (selectedSize === 'large') {
+    bodySize = 50;
+  }
+  return bodySize
+}
+
+function checkTouch(keypointPos, objectPos, size) {
+  if (!keypointPos || !objectPos) {
+    return false;
+  }
+
+  let objectSize;
+  if (size === 'small') {
+    objectSize = 10;
+  } else if (size === 'medium') {
+    objectSize = 20;
+  } else if (size === 'large') {
+    objectSize = 30;
+  }
+  let bodySize;
+  const selectedSize = document.querySelector('input[name="bodySize"]:checked').value;
+  if (selectedSize === 'small') {
+    bodySize = 10;
+  } else if (selectedSize === 'medium') {
+    bodySize = 20;
+  } else if (selectedSize === 'large') {
+    bodySize = 30;
+  }
+
+  const distance = Math.sqrt((keypointPos.x - objectPos.x) ** 2 + (keypointPos.y - objectPos.y) ** 2);
+  return distance < objectSize + bodySize;
+}
+
+function drawObject(ctx, x, y, size) {
+  const selectedObjectType = document.querySelector('input[name="objectType"]:checked').value;
+  let objectSize;
+
+  if (size === 'small') {
+    objectSize = 10;
+  } else if (size === 'medium') {
+    objectSize = 20;
+  } else if (size === 'large') {
+    objectSize = 30;
+  }
+
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+
+  if (selectedObjectType === 'circle') {
+    ctx.arc(x, y, objectSize, 0, 2 * Math.PI);
+  } else if (selectedObjectType === 'rectangle') {
+    ctx.rect(x - objectSize, y - objectSize, objectSize * 2, objectSize * 2);
+  } else if (selectedObjectType === 'triangle') {
+    ctx.moveTo(x, y - objectSize);
+    ctx.lineTo(x - objectSize, y + objectSize);
+    ctx.lineTo(x + objectSize, y + objectSize);
+    ctx.closePath();
+  }
+
+  ctx.fill();
+}
+
+function onResults(results) {
+  const filteredKeypoints = detectKeypoints(results.poseLandmarks);
+
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+  // Flip the image horizontally
+  canvasCtx.scale(-1, 1);
+  canvasCtx.translate(-canvasElement.width, 0);
+
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
+  drawLandmarks(canvasCtx, filteredKeypoints, {color: '#FF0000', lineWidth: getPointSize()});
+
+  canvasCtx.restore();
+
+  if (objectPosition) {
+    const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
+    countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
+
+    if (countdownTime > 0) {
+      const selectedSize = document.querySelector('input[name="objectSize"]:checked').value;
+      drawObject(canvasCtx, objectPosition.x, objectPosition.y, selectedSize);
+      canvasCtx.font = '20px Arial';
+      canvasCtx.fillStyle = 'white';
+      canvasCtx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
+
+      // Check for touch
+      if (filteredKeypoints) {
+        filteredKeypoints.forEach(keypoint => {
+          const position = {x: (1 - keypoint.x) * canvasElement.width, y: keypoint.y * canvasElement.height};
+          if (checkTouch(position, objectPosition, selectedSize)) {
             score++;
             scoreElement.innerText = `Score: ${score}`;
             objectPosition = null;
           }
         });
-      } else {
-        objectPosition = null;
       }
     } else {
-      spawnObject();
+      objectPosition = null;
     }
-
-    requestAnimationFrame(gameLoop);
-  } catch (error) {
-    console.error('Error in game loop:', error);
-    requestAnimationFrame(gameLoop);
+  } else {
+    spawnObject();
   }
+
+
+  canvasCtx.restore();
 }
 
-// Initialize the game
 async function init() {
-  await setupCamera(video);
-  net = await loadPosenet();
-  gameLoop();
-}
+  net = loadPosenet();
+  setupCamera(video, canvas);
 
-// Add event listener for reset button
-resetButton.addEventListener('click', resetGame);
+  net.onResults(onResults);
+}
 
 init();

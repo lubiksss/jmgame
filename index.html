@@ -24,11 +24,11 @@
 </div>
 <div id="body-size-controls">
     <label>Body size: </label>
-    <input type="radio" id="large-body" name="bodySize" value="large" checked>
+    <input type="radio" id="large-body" name="bodySize" value="large">
     <label for="large-body">Large</label>
     <input type="radio" id="medium-body" name="bodySize" value="medium">
     <label for="medium-body">Medium</label>
-    <input type="radio" id="small-body" name="bodySize" value="small">
+    <input type="radio" id="small-body" name="bodySize" value="small" checked>
     <label for="small-body">Small</label>
 </div>
 <div id="interval-controls">
@@ -60,21 +60,42 @@
             <td data-cell="0-0"></td>
             <td data-cell="0-1"></td>
             <td data-cell="0-2"></td>
+            <td data-cell="0-3"></td>
+            <td data-cell="0-4"></td>
         </tr>
         <tr>
             <td data-cell="1-0"></td>
             <td data-cell="1-1"></td>
             <td data-cell="1-2"></td>
+            <td data-cell="1-3"></td>
+            <td data-cell="1-4"></td>
         </tr>
         <tr>
             <td data-cell="2-0"></td>
             <td data-cell="2-1"></td>
             <td data-cell="2-2"></td>
+            <td data-cell="2-3"></td>
+            <td data-cell="2-4"></td>
+        </tr>
+        <tr>
+            <td data-cell="3-0"></td>
+            <td data-cell="3-1"></td>
+            <td data-cell="3-2"></td>
+            <td data-cell="3-3"></td>
+            <td data-cell="3-4"></td>
+        </tr>
+        <tr>
+            <td data-cell="4-0"></td>
+            <td data-cell="4-1"></td>
+            <td data-cell="4-2"></td>
+            <td data-cell="4-3"></td>
+            <td data-cell="4-4"></td>
         </tr>
     </table>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3"></script>
 <script src="script.js" type="module"></script>
 </body>
 </html>
