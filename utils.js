@@ -15,6 +15,7 @@ export async function setupCamera(video) {
     };
   });
 }
+
 function isMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
@@ -64,12 +65,18 @@ export function checkTouch(keypointPos, objectPos, size) {
   } else if (size === 'large') {
     objectSize = 30;
   }
+  let bodySize;
+  const selectedSize = document.querySelector('input[name="bodySize"]:checked').value;
+  if (selectedSize === 'small') {
+    bodySize = 10;
+  }else if (selectedSize === 'medium') {
+    bodySize = 20;
+  }else if (selectedSize === 'large') {
+    bodySize = 30;
+  }
 
-  const distance = Math.sqrt(
-    (keypointPos.x - objectPos.x) ** 2 +
-    (keypointPos.y - objectPos.y) ** 2
-  );
-  return distance < objectSize;
+  const distance = Math.sqrt((keypointPos.x - objectPos.x) ** 2 + (keypointPos.y - objectPos.y) ** 2);
+  return distance < objectSize + bodySize;
 }
 
 export function drawObject(ctx, x, y, size) {
@@ -99,4 +106,25 @@ export function drawObject(ctx, x, y, size) {
   }
 
   ctx.fill();
+}
+
+export function drawKeypoints(ctx, keypoints) {
+  let bodySize
+  const selectedSize = document.querySelector('input[name="bodySize"]:checked').value;
+
+  if (selectedSize === 'small') {
+    bodySize = 10;
+  } else if (selectedSize === 'medium') {
+    bodySize = 20;
+  } else if (selectedSize === 'large') {
+    bodySize = 30;
+  }
+
+  // Draw keypoint positions
+  keypoints.forEach(keypoint => {
+    ctx.beginPath();
+    ctx.arc(keypoint.position.x, keypoint.position.y, bodySize, 0, 2 * Math.PI);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+  });
 }

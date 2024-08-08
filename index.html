@@ -14,6 +14,7 @@
 <div id="score">Score: 0 </div>
 <button id="reset-button">Reset</button>
 <div id="controls">
+    <label>Body part: </label>
     <input type="radio" id="hand" name="bodypart" value="hand" checked>
     <label for="hand">Hand</label>
     <input type="radio" id="head" name="bodypart" value="head">
@@ -21,11 +22,21 @@
     <input type="radio" id="foot" name="bodypart" value="foot">
     <label for="foot">Foot</label>
 </div>
+<div id="body-size-controls">
+    <label>Body size: </label>
+    <input type="radio" id="large-body" name="bodySize" value="large" checked>
+    <label for="large-body">Large</label>
+    <input type="radio" id="medium-body" name="bodySize" value="medium">
+    <label for="medium-body">Medium</label>
+    <input type="radio" id="small-body" name="bodySize" value="small">
+    <label for="small-body">Small</label>
+</div>
 <div id="interval-controls">
     <label for="interval">Object Interval (seconds):</label>
     <input type="number" id="interval" name="interval" min="1" max="10" value="3">
 </div>
 <div id="object-controls">
+    <label>Object type: </label>
     <input type="radio" id="circle" name="objectType" value="circle" checked>
     <label for="circle">Circle</label>
     <input type="radio" id="rectangle" name="objectType" value="rectangle">
@@ -34,6 +45,7 @@
     <label for="triangle">Triangle</label>
 </div>
 <div id="size-controls">
+    <label>Object size: </label>
     <input type="radio" id="large" name="objectSize" value="large" checked>
     <label for="large">Large</label>
     <input type="radio" id="medium" name="objectSize" value="medium">

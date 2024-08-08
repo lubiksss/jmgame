@@ -1,4 +1,4 @@
-import { setupCamera, loadPosenet, detectKeypoints, checkTouch, drawObject } from './utils.js';
+import {setupCamera, loadPosenet, detectKeypoints, checkTouch, drawObject, drawKeypoints} from './utils.js';
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
@@ -77,12 +77,7 @@ async function gameLoop() {
     ctx.restore();
 
     // Draw keypoint positions
-    keypoints.forEach(keypoint => {
-      ctx.beginPath();
-      ctx.arc(keypoint.position.x, keypoint.position.y, 10, 0, 2 * Math.PI);
-      ctx.fillStyle = 'green';
-      ctx.fill();
-    });
+    drawKeypoints(ctx, keypoints);
 
     // Display object with countdown
     if (objectPosition) {
