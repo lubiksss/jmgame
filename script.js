@@ -6,6 +6,7 @@ let net;
 let score = 0;
 let objectPosition = null;
 let objectSpawnTime = 0;
+let countdownTime = 0;
 
 // Setup camera
 async function setupCamera() {
@@ -50,12 +51,13 @@ function checkTouch(handPos, objectPos, radius = 20) {
   return distance < radius;
 }
 
-// Generate and display random circular objects
+// Generate and display random circular objects with countdown
 function spawnObject() {
   const x = Math.floor(Math.random() * (canvas.width - 40)) + 20;
   const y = Math.floor(Math.random() * (canvas.height - 40)) + 20;
   objectPosition = { x, y };
   objectSpawnTime = Date.now();
+  countdownTime = 3;  // Start countdown from 3 seconds
 }
 
 // Main game loop
@@ -77,21 +79,31 @@ async function gameLoop() {
     ctx.fill();
   });
 
-  // Display object
-  if (objectPosition && Date.now() - objectSpawnTime < 3000) {
-    ctx.beginPath();
-    ctx.arc(objectPosition.x, objectPosition.y, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = 'red';
-    ctx.fill();
+  // Display object with countdown
+  if (objectPosition) {
+    const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
+    countdownTime = Math.max(3 - timeElapsed, 0).toFixed(1);  // Update countdown
 
-    // Check for touch
-    hands.forEach(hand => {
-      if (checkTouch(hand.position, objectPosition)) {
-        score++;
-        scoreElement.innerText = `Score: ${score}`;
-        objectPosition = null;
-      }
-    });
+    if (countdownTime > 0) {
+      ctx.beginPath();
+      ctx.arc(objectPosition.x, objectPosition.y, 20, 0, 2 * Math.PI);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      ctx.font = '20px Arial';
+      ctx.fillStyle = 'white';
+      ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
+
+      // Check for touch
+      hands.forEach(hand => {
+        if (checkTouch(hand.position, objectPosition)) {
+          score++;
+          scoreElement.innerText = `Score: ${score}`;
+          objectPosition = null;
+        }
+      });
+    } else {
+      objectPosition = null;
+    }
   } else {
     spawnObject();
   }
