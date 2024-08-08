@@ -1,4 +1,4 @@
-import {setupCamera, loadPosenet, detectKeypoints, checkTouch, drawObject, drawKeypoints} from './utils.js';
+import {checkTouch, detectKeypoints, drawKeypoints, drawObject, loadPosenet, setupCamera} from './utils.js';
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
@@ -36,7 +36,7 @@ function spawnObject() {
   const x = col * cellWidth + Math.random() * cellWidth;
   const y = row * cellHeight + Math.random() * cellHeight;
 
-  objectPosition = { x, y };
+  objectPosition = {x, y};
   objectSpawnTime = Date.now();
   countdownTime = parseInt(intervalInput.value, 10);  // Start countdown from selected interval
 }

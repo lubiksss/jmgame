@@ -69,9 +69,9 @@ export function checkTouch(keypointPos, objectPos, size) {
   const selectedSize = document.querySelector('input[name="bodySize"]:checked').value;
   if (selectedSize === 'small') {
     bodySize = 10;
-  }else if (selectedSize === 'medium') {
+  } else if (selectedSize === 'medium') {
     bodySize = 20;
-  }else if (selectedSize === 'large') {
+  } else if (selectedSize === 'large') {
     bodySize = 30;
   }
 
