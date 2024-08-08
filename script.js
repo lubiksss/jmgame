@@ -66,51 +66,56 @@ boundaryCells.forEach(cell => {
 
 // Main game loop
 async function gameLoop() {
-  const keypoints = await detectKeypoints(video, net);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  try {
+    const keypoints = await detectKeypoints(video, net);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw the mirrored video feed
-  ctx.save();
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-  ctx.restore();
+    // Draw the mirrored video feed
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+    ctx.restore();
 
-  // Draw keypoint positions
-  keypoints.forEach(keypoint => {
-    ctx.beginPath();
-    ctx.arc(keypoint.position.x, keypoint.position.y, 10, 0, 2 * Math.PI);
-    ctx.fillStyle = 'green';
-    ctx.fill();
-  });
+    // Draw keypoint positions
+    keypoints.forEach(keypoint => {
+      ctx.beginPath();
+      ctx.arc(keypoint.position.x, keypoint.position.y, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = 'green';
+      ctx.fill();
+    });
 
-  // Display object with countdown
-  if (objectPosition) {
-    const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
-    countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
+    // Display object with countdown
+    if (objectPosition) {
+      const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
+      countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
 
-    if (countdownTime > 0) {
-      const selectedSize = document.querySelector('input[name="objectSize"]:checked').value;
-      drawObject(ctx, objectPosition.x, objectPosition.y, selectedSize);
-      ctx.font = '20px Arial';
-      ctx.fillStyle = 'white';
-      ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
+      if (countdownTime > 0) {
+        const selectedSize = document.querySelector('input[name="objectSize"]:checked').value;
+        drawObject(ctx, objectPosition.x, objectPosition.y, selectedSize);
+        ctx.font = '20px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
 
-      // Check for touch
-      keypoints.forEach(keypoint => {
-        if (checkTouch(keypoint.position, objectPosition, selectedSize)) {
-          score++;
-          scoreElement.innerText = `Score: ${score}`;
-          objectPosition = null;
-        }
-      });
+        // Check for touch
+        keypoints.forEach(keypoint => {
+          if (checkTouch(keypoint.position, objectPosition, selectedSize)) {
+            score++;
+            scoreElement.innerText = `Score: ${score}`;
+            objectPosition = null;
+          }
+        });
+      } else {
+        objectPosition = null;
+      }
     } else {
-      objectPosition = null;
+      spawnObject();
     }
-  } else {
-    spawnObject();
-  }
 
-  requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop);
+  } catch (error) {
+    console.error('Error in game loop:', error);
+    requestAnimationFrame(gameLoop);
+  }
 }
 
 // Initialize the game
