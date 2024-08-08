@@ -1,4 +1,6 @@
 export async function setupCamera(video) {
+  setupVideoElement()
+
   video.width = 640;
   video.height = 480;
 
@@ -12,6 +14,19 @@ export async function setupCamera(video) {
       resolve(video);
     };
   });
+}
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function setupVideoElement() {
+  if (isMobile()) {
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+  } else {
+    video.setAttribute('autoplay', '');
+  }
 }
 
 export async function loadPosenet() {
