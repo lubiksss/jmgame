@@ -4,11 +4,13 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const intervalInput = document.getElementById('interval');
 const resetButton = document.getElementById('reset-button');
+const boundaryCells = document.querySelectorAll('td[data-cell]');
 let net;
 let score = 0;
 let objectPosition = null;
 let objectSpawnTime = 0;
 let countdownTime = 0;
+let selectedCells = new Set();
 
 // Setup camera
 async function setupCamera() {
@@ -75,8 +77,18 @@ function checkTouch(keypointPos, objectPos, size, radius = 20) {
 
 // Generate and display random objects with countdown
 function spawnObject() {
-  const x = Math.floor(Math.random() * (canvas.width - 40)) + 20;
-  const y = Math.floor(Math.random() * (canvas.height - 40)) + 20;
+  if (selectedCells.size === 0) {
+    return;
+  }
+  const cellArray = Array.from(selectedCells);
+  const randomCell = cellArray[Math.floor(Math.random() * cellArray.length)];
+  const [row, col] = randomCell.split('-').map(Number);
+
+  const cellWidth = canvas.width / 3;
+  const cellHeight = canvas.height / 3;
+  const x = col * cellWidth + Math.random() * cellWidth;
+  const y = row * cellHeight + Math.random() * cellHeight;
+
   objectPosition = { x, y };
   objectSpawnTime = Date.now();
   countdownTime = parseInt(intervalInput.value, 10);  // Start countdown from selected interval
@@ -119,6 +131,20 @@ function resetGame() {
   objectPosition = null;
   spawnObject();
 }
+
+// Handle cell selection
+boundaryCells.forEach(cell => {
+  cell.addEventListener('click', () => {
+    const cellId = cell.getAttribute('data-cell');
+    if (selectedCells.has(cellId)) {
+      selectedCells.delete(cellId);
+      cell.classList.remove('selected');
+    } else {
+      selectedCells.add(cellId);
+      cell.classList.add('selected');
+    }
+  });
+});
 
 // Main game loop
 async function gameLoop() {

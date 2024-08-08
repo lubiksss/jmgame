@@ -21,13 +21,25 @@
         #canvas {
             border: 1px solid black;
         }
-        #controls, #interval-controls, #object-controls, #size-controls, #reset-controls {
+        #controls, #interval-controls, #object-controls, #size-controls, #reset-controls, #boundary-controls {
             display: flex;
             justify-content: center;
             margin-top: 10px;
         }
-        #controls label, #interval-controls label, #object-controls label, #size-controls label {
+        #controls label, #interval-controls label, #object-controls label, #size-controls label, #boundary-controls label {
             margin-right: 10px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            width: 30px;
+            height: 30px;
+            border: 1px solid white;
+            text-align: center;
+        }
+        .selected {
+            background-color: green;
         }
     </style>
 </head>
@@ -37,9 +49,6 @@
     <canvas id="canvas" width="640" height="480"></canvas>
 </div>
 <div id="score">Score: 0</div>
-<div id="reset-controls">
-    <button id="reset-button">Reset</button>
-</div>
 <div id="controls">
     <input type="radio" id="hand" name="bodypart" value="hand" checked>
     <label for="hand">Hand</label>
@@ -67,6 +76,28 @@
     <label for="medium">Medium</label>
     <input type="radio" id="large" name="objectSize" value="large">
     <label for="large">Large</label>
+</div>
+<div id="boundary-controls">
+    <table>
+        <tr>
+            <td data-cell="0-0"></td>
+            <td data-cell="0-1"></td>
+            <td data-cell="0-2"></td>
+        </tr>
+        <tr>
+            <td data-cell="1-0"></td>
+            <td data-cell="1-1"></td>
+            <td data-cell="1-2"></td>
+        </tr>
+        <tr>
+            <td data-cell="2-0"></td>
+            <td data-cell="2-1"></td>
+            <td data-cell="2-2"></td>
+        </tr>
+    </table>
+</div>
+<div id="reset-controls">
+    <button id="reset-button">Reset</button>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
