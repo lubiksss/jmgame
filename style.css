@@ -1,0 +1,52 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: white;
+    color: black;
+    font-size: 24px;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+}
+
+#canvas-container {
+    position: relative;
+}
+
+#canvas {
+    border: 1px solid black;
+}
+
+#controls,
+#interval-controls,
+#object-controls,
+#size-controls,
+#reset-controls,
+#boundary-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#controls label,
+#interval-controls label,
+#object-controls label,
+#size-controls label {
+    margin-right: 10px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    width: 30px;
+    height: 30px;
+    border: 1px solid black;
+    text-align: center;
+}
+
+.selected {
+    background-color: green;
+}
