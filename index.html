@@ -21,18 +21,13 @@
         #canvas {
             border: 1px solid black;
         }
-        #controls {
+        #controls, #interval-controls, #object-controls, #size-controls, #reset-controls {
             display: flex;
             justify-content: center;
             margin-top: 10px;
         }
-        #controls label {
+        #controls label, #interval-controls label, #object-controls label, #size-controls label {
             margin-right: 10px;
-        }
-        #interval-controls {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -42,6 +37,9 @@
     <canvas id="canvas" width="640" height="480"></canvas>
 </div>
 <div id="score">Score: 0</div>
+<div id="reset-controls">
+    <button id="reset-button">Reset</button>
+</div>
 <div id="controls">
     <input type="radio" id="hand" name="bodypart" value="hand" checked>
     <label for="hand">Hand</label>
@@ -51,8 +49,24 @@
     <label for="foot">Foot</label>
 </div>
 <div id="interval-controls">
-    <label for="interval">Interval(seconds):</label>
+    <label for="interval">Object Interval (seconds):</label>
     <input type="number" id="interval" name="interval" min="1" max="10" value="3">
+</div>
+<div id="object-controls">
+    <input type="radio" id="circle" name="objectType" value="circle" checked>
+    <label for="circle">Circle</label>
+    <input type="radio" id="rectangle" name="objectType" value="rectangle">
+    <label for="rectangle">Rectangle</label>
+    <input type="radio" id="triangle" name="objectType" value="triangle">
+    <label for="triangle">Triangle</label>
+</div>
+<div id="size-controls">
+    <input type="radio" id="small" name="objectSize" value="small" checked>
+    <label for="small">Small</label>
+    <input type="radio" id="medium" name="objectSize" value="medium">
+    <label for="medium">Medium</label>
+    <input type="radio" id="large" name="objectSize" value="large">
+    <label for="large">Large</label>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>

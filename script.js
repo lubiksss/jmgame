@@ -3,6 +3,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const intervalInput = document.getElementById('interval');
+const resetButton = document.getElementById('reset-button');
 let net;
 let score = 0;
 let objectPosition = null;
@@ -51,24 +52,72 @@ async function detectKeypoints() {
 }
 
 // Check if a keypoint touches the object
-function checkTouch(keypointPos, objectPos, radius = 20) {
+function checkTouch(keypointPos, objectPos, size, radius = 20) {
   if (!keypointPos || !objectPos) {
     return false;
   }
+
+  let objectSize;
+  if (size === 'small') {
+    objectSize = 10;
+  } else if (size === 'medium') {
+    objectSize = 20;
+  } else if (size === 'large') {
+    objectSize = 30;
+  }
+
   const distance = Math.sqrt(
     (keypointPos.x - objectPos.x) ** 2 +
     (keypointPos.y - objectPos.y) ** 2
   );
-  return distance < radius;
+  return distance < objectSize;
 }
 
-// Generate and display random circular objects with countdown
+// Generate and display random objects with countdown
 function spawnObject() {
   const x = Math.floor(Math.random() * (canvas.width - 40)) + 20;
   const y = Math.floor(Math.random() * (canvas.height - 40)) + 20;
   objectPosition = { x, y };
   objectSpawnTime = Date.now();
   countdownTime = parseInt(intervalInput.value, 10);  // Start countdown from selected interval
+}
+
+// Draw the selected object type
+function drawObject(x, y, size) {
+  const selectedObjectType = document.querySelector('input[name="objectType"]:checked').value;
+  let objectSize;
+
+  if (size === 'small') {
+    objectSize = 10;
+  } else if (size === 'medium') {
+    objectSize = 20;
+  } else if (size === 'large') {
+    objectSize = 30;
+  }
+
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+
+  if (selectedObjectType === 'circle') {
+    ctx.arc(x, y, objectSize, 0, 2 * Math.PI);
+  } else if (selectedObjectType === 'rectangle') {
+    ctx.rect(x - objectSize, y - objectSize, objectSize * 2, objectSize * 2);
+  } else if (selectedObjectType === 'triangle') {
+    ctx.moveTo(x, y - objectSize);
+    ctx.lineTo(x - objectSize, y + objectSize);
+    ctx.lineTo(x + objectSize, y + objectSize);
+    ctx.closePath();
+  }
+
+  ctx.fill();
+}
+
+// Reset the game
+function resetGame() {
+  score = 0;
+  scoreElement.innerText = `Score: ${score}`;
+  objectPosition = null;
+  spawnObject();
 }
 
 // Main game loop
@@ -96,17 +145,15 @@ async function gameLoop() {
     countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
 
     if (countdownTime > 0) {
-      ctx.beginPath();
-      ctx.arc(objectPosition.x, objectPosition.y, 20, 0, 2 * Math.PI);
-      ctx.fillStyle = 'red';
-      ctx.fill();
+      const selectedSize = document.querySelector('input[name="objectSize"]:checked').value;
+      drawObject(objectPosition.x, objectPosition.y, selectedSize);
       ctx.font = '20px Arial';
       ctx.fillStyle = 'white';
       ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
 
       // Check for touch
       keypoints.forEach(keypoint => {
-        if (checkTouch(keypoint.position, objectPosition)) {
+        if (checkTouch(keypoint.position, objectPosition, selectedSize)) {
           score++;
           scoreElement.innerText = `Score: ${score}`;
           objectPosition = null;
@@ -128,5 +175,8 @@ async function init() {
   await loadPosenet();
   gameLoop();
 }
+
+// Add event listener for reset button
+resetButton.addEventListener('click', resetGame);
 
 init();
