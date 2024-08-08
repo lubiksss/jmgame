@@ -2,6 +2,7 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
+const intervalInput = document.getElementById('interval');
 let net;
 let score = 0;
 let objectPosition = null;
@@ -30,23 +31,33 @@ async function loadPosenet() {
   net = await posenet.load();
 }
 
-// Detect hand positions using PoseNet
-async function detectHands() {
+// Detect keypoints using PoseNet based on the selected body part
+async function detectKeypoints() {
   const pose = await net.estimateSinglePose(video, {
     flipHorizontal: true
   });
 
-  return pose.keypoints.filter(point => point.part === 'leftWrist' || point.part === 'rightWrist');
+  const selectedPart = document.querySelector('input[name="bodypart"]:checked').value;
+
+  if (selectedPart === 'hand') {
+    return pose.keypoints.filter(point => point.part === 'leftWrist' || point.part === 'rightWrist');
+  } else if (selectedPart === 'head') {
+    return pose.keypoints.filter(point => point.part === 'nose' || point.part === 'leftEye' || point.part === 'rightEye');
+  } else if (selectedPart === 'foot') {
+    return pose.keypoints.filter(point => point.part === 'leftAnkle' || point.part === 'rightAnkle');
+  } else {
+    return [];
+  }
 }
 
-// Check if hand touches the object
-function checkTouch(handPos, objectPos, radius = 20) {
-  if (!handPos || !objectPos) {
+// Check if a keypoint touches the object
+function checkTouch(keypointPos, objectPos, radius = 20) {
+  if (!keypointPos || !objectPos) {
     return false;
   }
   const distance = Math.sqrt(
-    (handPos.x - objectPos.x) ** 2 +
-    (handPos.y - objectPos.y) ** 2
+    (keypointPos.x - objectPos.x) ** 2 +
+    (keypointPos.y - objectPos.y) ** 2
   );
   return distance < radius;
 }
@@ -57,12 +68,12 @@ function spawnObject() {
   const y = Math.floor(Math.random() * (canvas.height - 40)) + 20;
   objectPosition = { x, y };
   objectSpawnTime = Date.now();
-  countdownTime = 3;  // Start countdown from 3 seconds
+  countdownTime = parseInt(intervalInput.value, 10);  // Start countdown from selected interval
 }
 
 // Main game loop
 async function gameLoop() {
-  const hands = await detectHands();
+  const keypoints = await detectKeypoints();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw the mirrored video feed
@@ -71,10 +82,10 @@ async function gameLoop() {
   ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
   ctx.restore();
 
-  // Draw hand positions
-  hands.forEach(hand => {
+  // Draw keypoint positions
+  keypoints.forEach(keypoint => {
     ctx.beginPath();
-    ctx.arc(hand.position.x, hand.position.y, 10, 0, 2 * Math.PI);
+    ctx.arc(keypoint.position.x, keypoint.position.y, 10, 0, 2 * Math.PI);
     ctx.fillStyle = 'green';
     ctx.fill();
   });
@@ -82,7 +93,7 @@ async function gameLoop() {
   // Display object with countdown
   if (objectPosition) {
     const timeElapsed = (Date.now() - objectSpawnTime) / 1000;
-    countdownTime = Math.max(3 - timeElapsed, 0).toFixed(1);  // Update countdown
+    countdownTime = Math.max(parseInt(intervalInput.value, 10) - timeElapsed, 0).toFixed(1);  // Update countdown
 
     if (countdownTime > 0) {
       ctx.beginPath();
@@ -94,8 +105,8 @@ async function gameLoop() {
       ctx.fillText(countdownTime, objectPosition.x - 10, objectPosition.y + 5);
 
       // Check for touch
-      hands.forEach(hand => {
-        if (checkTouch(hand.position, objectPosition)) {
+      keypoints.forEach(keypoint => {
+        if (checkTouch(keypoint.position, objectPosition)) {
           score++;
           scoreElement.innerText = `Score: ${score}`;
           objectPosition = null;
